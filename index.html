@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f3ea">
+  <title>삼각비 첫걸음</title>
+  <link rel="stylesheet" href="styles.css?v=13">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="삼각비 첫걸음 홈">
+      <span class="brand-mark" aria-hidden="true">△</span>
+      <span>삼각비 첫걸음</span>
+    </a>
+    <div class="top-status" aria-label="학습 현황">
+      <span class="status-label">오늘의 정답</span>
+      <strong id="totalCorrect">0</strong>
+      <span class="status-divider"></span>
+      <span class="status-label">연속</span>
+      <strong id="streak">0</strong>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">RIGHT TRIANGLE LAB</p>
+      <h1>눈으로 익히는<br><em>삼각비의 기초</em></h1>
+      <p class="hero-copy">각 A를 기준으로 변을 찾고, 직접 계산하며 원리를 익혀 보세요.</p>
+    </section>
+
+    <nav class="stage-nav" aria-label="학습 단계">
+      <button class="stage-tab active" data-stage="1" type="button">
+        <span class="stage-number">1</span>
+        <span><b>세 변으로 삼각비</b><small>기본·회전 문제 함께 연습</small></span>
+      </button>
+      <button class="stage-tab" data-stage="2" type="button" disabled aria-disabled="true">
+        <span class="stage-number">2</span>
+        <span><b>두 변으로 삼각비</b><small id="stageTwoDescription">1단계 정답 5개 후 열려요</small></span>
+      </button>
+      <button class="stage-tab" data-stage="3" type="button" disabled aria-disabled="true">
+        <span class="stage-number">3</span>
+        <span><b>특수각 연습</b><small id="stageThreeDescription">1단계 정답 5개 후 열려요</small></span>
+      </button>
+    </nav>
+
+    <section class="lesson-card">
+      <div class="lesson-heading">
+        <div>
+          <span class="lesson-badge" id="stageBadge">1단계</span>
+          <h2 id="stageTitle">각 A의 삼각비를 구해 보세요</h2>
+          <p id="stageDescription">세 변의 길이를 살펴보고, 각 A를 기준으로 계산하세요.</p>
+        </div>
+        <button class="hint-button" id="hintButton" type="button" aria-expanded="false">
+          <span aria-hidden="true">?</span> 개념 힌트
+        </button>
+      </div>
+
+      <div class="hint-panel" id="hintPanel" hidden>
+        <div class="hint-icon" aria-hidden="true">A</div>
+        <div id="hintText">
+          <b>각 A에서 바라보세요.</b>
+          <p>마주 보는 변은 대변, 맞닿은 짧은 변은 인접변, 직각의 맞은편은 빗변입니다.</p>
+        </div>
+      </div>
+
+      <section class="special-mode-selector" id="specialModeSelector" aria-labelledby="specialModeTitle" hidden>
+        <div>
+          <b id="specialModeTitle">특수각 연습 방법을 선택하세요</b>
+          <small>그림으로 이해하고, 값과 변의 길이를 단계별로 연습합니다.</small>
+        </div>
+        <div class="special-mode-options" role="group" aria-label="특수각 하위 단계 선택">
+          <button class="special-mode-option active" data-special-mode="3-1" type="button" aria-pressed="true"><strong>3-1</strong><span>삼각형으로 값 구하기</span></button>
+          <button class="special-mode-option" data-special-mode="3-2" type="button" aria-pressed="false"><strong>3-2</strong><span>그림 없이 값 쓰기</span></button>
+          <button class="special-mode-option" data-special-mode="3-3" type="button" aria-pressed="false"><strong>3-3</strong><span>나머지 변 구하기</span></button>
+        </div>
+      </section>
+
+      <section class="ratio-selector" id="ratioSelector" aria-labelledby="ratioSelectorTitle">
+        <div>
+          <b id="ratioSelectorTitle">구할 삼각비를 선택하세요</b>
+          <small>선택한 항목만 문제에 표시됩니다.</small>
+          <span class="stage-goal" id="stageGoal">1단계 정답 <strong>0 / 5</strong></span>
+        </div>
+        <div class="ratio-options" role="group" aria-label="삼각비 선택">
+          <button class="ratio-option" data-ratio-option="sin" type="button" aria-pressed="false">sin A</button>
+          <button class="ratio-option" data-ratio-option="cos" type="button" aria-pressed="false">cos A</button>
+          <button class="ratio-option" data-ratio-option="tan" type="button" aria-pressed="false">tan A</button>
+          <button class="ratio-option active" data-ratio-option="all" type="button" aria-pressed="true">전체 삼각비</button>
+        </div>
+      </section>
+
+      <section class="angle-selector" id="angleSelector" aria-labelledby="angleSelectorTitle" hidden>
+        <div>
+          <b id="angleSelectorTitle">연습할 특수각을 선택하세요</b>
+          <small id="angleSelectorDescription">혼합 연습에서는 30°, 45°, 60°가 무작위로 나옵니다.</small>
+        </div>
+        <div class="angle-options" role="group" aria-label="특수각 선택">
+          <button class="angle-option" data-angle-option="30" type="button" aria-pressed="false">30° 연습</button>
+          <button class="angle-option" data-angle-option="45" type="button" aria-pressed="false">45° 연습</button>
+          <button class="angle-option" data-angle-option="60" type="button" aria-pressed="false">60° 연습</button>
+          <button class="angle-option active" data-angle-option="mixed" type="button" aria-pressed="true">특수각 혼합</button>
+        </div>
+      </section>
+
+      <div class="practice-grid" id="practiceGrid">
+        <div class="diagram-panel" id="diagramPanel">
+          <div class="question-chip" id="questionChip">문제 1</div>
+          <svg id="triangleSvg" viewBox="0 0 520 380" role="img" aria-label="직각삼각형 문제 그림"></svg>
+          <p class="diagram-note"><span class="angle-dot"></span> 색칠된 각이 기준각 A입니다. · 변의 길이에 맞춘 비율로 그렸어요.</p>
+        </div>
+
+        <div class="answer-panel">
+          <div id="lengthAnswer" class="length-answer" hidden>
+            <p><span id="missingSideName">변 BC</span>의 길이부터 구하세요</p>
+            <label class="single-answer">
+              <span class="sr-only">빠진 변의 길이</span>
+              <input id="lengthInput" inputmode="text" autocomplete="off" aria-label="빠진 변의 길이">
+              <span class="unit">cm</span>
+            </label>
+            <p class="input-help">루트는 <kbd>√</kbd> 또는 <kbd>sqrt()</kbd>로 입력할 수 있어요.</p>
+          </div>
+
+          <div class="special-length-answers" id="specialLengthAnswers" hidden>
+            <p>물음표로 표시된 두 변의 길이를 구하세요</p>
+            <div class="special-length-list">
+              <label class="special-length-row" data-special-side="adjacent">
+                <span class="special-side-name">변 AB</span>
+                <input inputmode="text" autocomplete="off" aria-label="변 AB의 길이">
+                <span class="unit">cm</span>
+                <span class="result-mark" aria-live="polite"></span>
+              </label>
+              <label class="special-length-row" data-special-side="opposite">
+                <span class="special-side-name">변 BC</span>
+                <input inputmode="text" autocomplete="off" aria-label="변 BC의 길이">
+                <span class="unit">cm</span>
+                <span class="result-mark" aria-live="polite"></span>
+              </label>
+              <label class="special-length-row" data-special-side="hyp">
+                <span class="special-side-name">변 AC</span>
+                <input inputmode="text" autocomplete="off" aria-label="변 AC의 길이">
+                <span class="unit">cm</span>
+                <span class="result-mark" aria-live="polite"></span>
+              </label>
+            </div>
+            <p class="input-help">30°·60°·90°는 1 : √3 : 2, 45°·45°·90°는 1 : 1 : √2를 이용하세요.</p>
+          </div>
+
+          <div id="trigAnswers" class="trig-answers">
+            <p class="trig-answer-title" id="trigAnswerTitle">전체 삼각비를 완성하세요</p>
+            <div class="formula-row" data-ratio="sin">
+              <div class="formula-name"><span>sin</span> A</div>
+              <span class="equals">=</span>
+              <label class="fraction-input">
+                <span class="sr-only">사인 A 분자</span>
+                <input inputmode="text" autocomplete="off" data-part="numerator" aria-label="사인 A 분자">
+                <span class="fraction-line"></span>
+                <span class="sr-only">사인 A 분모</span>
+                <input inputmode="text" autocomplete="off" data-part="denominator" aria-label="사인 A 분모">
+              </label>
+              <span class="result-mark" aria-live="polite"></span>
+            </div>
+            <div class="formula-row" data-ratio="cos">
+              <div class="formula-name"><span>cos</span> A</div>
+              <span class="equals">=</span>
+              <label class="fraction-input">
+                <span class="sr-only">코사인 A 분자</span>
+                <input inputmode="text" autocomplete="off" data-part="numerator" aria-label="코사인 A 분자">
+                <span class="fraction-line"></span>
+                <span class="sr-only">코사인 A 분모</span>
+                <input inputmode="text" autocomplete="off" data-part="denominator" aria-label="코사인 A 분모">
+              </label>
+              <span class="result-mark" aria-live="polite"></span>
+            </div>
+            <div class="formula-row" data-ratio="tan">
+              <div class="formula-name"><span>tan</span> A</div>
+              <span class="equals">=</span>
+              <label class="fraction-input">
+                <span class="sr-only">탄젠트 A 분자</span>
+                <input inputmode="text" autocomplete="off" data-part="numerator" aria-label="탄젠트 A 분자">
+                <span class="fraction-line"></span>
+                <span class="sr-only">탄젠트 A 분모</span>
+                <input inputmode="text" autocomplete="off" data-part="denominator" aria-label="탄젠트 A 분모">
+              </label>
+              <span class="result-mark" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="math-symbol-toolbar" id="mathSymbolToolbar" hidden>
+            <span>답안 칸을 누른 뒤 사용하세요.</span>
+            <button id="insertRootButton" type="button" aria-label="선택한 입력칸에 루트 기호 넣기">
+              <b aria-hidden="true">√</b> 루트 기호 넣기
+            </button>
+          </div>
+
+          <section class="math-calculator" id="mathCalculator" hidden aria-labelledby="calculatorTitle">
+            <button class="calculator-toggle" id="calculatorToggle" type="button" aria-expanded="false">
+              <span class="calculator-symbol" aria-hidden="true">x²</span>
+              <span><b id="calculatorTitle">피타고라스 자동 계산기</b><small>두 수와 연산을 정하면 자동으로 계산해요</small></span>
+              <span class="toggle-arrow" aria-hidden="true">⌄</span>
+            </button>
+            <div class="calculator-body" id="calculatorBody" hidden>
+              <p class="calculator-guide" id="calculatorGuide">주어진 두 길이를 입력하고 계산 방법을 선택하세요.</p>
+              <div class="calculator-equation">
+                <span class="root-symbol" aria-hidden="true">√</span>
+                <div class="calculator-expression">
+                  <label>
+                    <span class="sr-only">첫 번째 수</span>
+                    <input id="calcFirst" inputmode="text" autocomplete="off" placeholder="?" aria-label="첫 번째 수">
+                    <sup>2</sup>
+                  </label>
+                  <div class="operation-switch" aria-label="더하기 또는 빼기 선택">
+                    <button class="operation-button active" data-operation="add" type="button" aria-pressed="true" aria-label="더하기">＋</button>
+                    <button class="operation-button" data-operation="subtract" type="button" aria-pressed="false" aria-label="빼기">−</button>
+                  </div>
+                  <label>
+                    <span class="sr-only">두 번째 수</span>
+                    <input id="calcSecond" inputmode="text" autocomplete="off" placeholder="?" aria-label="두 번째 수">
+                    <sup>2</sup>
+                  </label>
+                </div>
+                <span class="calculator-equals" aria-hidden="true">=</span>
+                <output class="calculator-answer" id="calculatorAnswer" aria-live="polite">?</output>
+              </div>
+              <p class="calculator-status" id="calculatorStatus">두 숫자를 입력하면 결과가 바로 나와요.</p>
+              <button class="calculate-button" id="calculateButton" type="button" aria-expanded="false" disabled>중간 계산과정 보기 <span aria-hidden="true">⌄</span></button>
+              <div class="calculation-result" id="calculationResult" hidden aria-live="polite"></div>
+            </div>
+          </section>
+
+          <div class="feedback" id="feedback" aria-live="polite">
+            <span class="feedback-icon" aria-hidden="true">✦</span>
+            <div>
+              <b>차근차근 풀어 보세요.</b>
+              <p>그림에서 대변, 인접변, 빗변을 먼저 찾아보세요.</p>
+            </div>
+          </div>
+
+          <section class="stage-complete" id="stageComplete" aria-labelledby="stageCompleteTitle" hidden>
+            <span class="stage-complete-score" aria-hidden="true">5 / 5</span>
+            <div>
+              <b id="stageCompleteTitle">1단계 목표를 달성했어요!</b>
+              <p>2단계로 이동하거나, 세 변이 주어진 문제를 더 연습할 수 있어요.</p>
+            </div>
+            <div class="stage-complete-actions">
+              <button class="secondary-button" id="continueStageOne" type="button">계속 연습하기</button>
+              <button class="primary-button" id="goToStageTwo" type="button">2단계로 이동 <span>→</span></button>
+            </div>
+          </section>
+
+          <div class="action-row">
+            <button class="secondary-button" id="resetButton" type="button">다시 쓰기</button>
+            <button class="primary-button" id="checkButton" type="button">정답 확인 <span>→</span></button>
+          </div>
+          <button class="next-button" id="nextButton" type="button" hidden>다음 문제 <span>→</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="progress-section" aria-labelledby="progressTitle">
+      <div>
+        <p class="eyebrow">MY PROGRESS</p>
+        <h2 id="progressTitle">오늘의 학습 기록</h2>
+      </div>
+      <div class="progress-cards">
+        <article><span>푼 문제</span><strong id="solvedCount">0</strong><small>문제</small></article>
+        <article><span>정답률</span><strong id="accuracy">0</strong><small>%</small></article>
+        <article><span>최고 연속 정답</span><strong id="bestStreak">0</strong><small>회</small></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>삼각형을 천천히 바라보는 것부터, 수학은 시작됩니다.</footer>
+  <script src="app.js?v=16"></script>
+</body>
+</html>
