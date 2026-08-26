@@ -64,6 +64,14 @@ const specialAngleAnswers = {
   60: { sin: "√3/2", cos: "1/2", tan: "√3" }
 };
 
+const boundaryAngleProblems = [
+  { ratio: "sin", angle: 0, value: 0, label: "sin 0°" },
+  { ratio: "cos", angle: 0, value: 1, label: "cos 0°" },
+  { ratio: "tan", angle: 0, value: 0, label: "tan 0°" },
+  { ratio: "sin", angle: 90, value: 1, label: "sin 90°" },
+  { ratio: "cos", angle: 90, value: 0, label: "cos 90°" }
+];
+
 function scaledSpecialTriangle(angle, scale) {
   const base = specialAngleTriangles[angle];
   const scaleLabel = label => {
@@ -119,6 +127,7 @@ const els = {
   hintButton: document.querySelector("#hintButton"),
   hintPanel: document.querySelector("#hintPanel"),
   hintText: document.querySelector("#hintText"),
+  boundaryHintVisual: document.querySelector("#boundaryHintVisual"),
   ratioSelector: document.querySelector("#ratioSelector"),
   ratioButtons: [...document.querySelectorAll(".ratio-option")],
   specialModeSelector: document.querySelector("#specialModeSelector"),
@@ -132,6 +141,12 @@ const els = {
   trigAnswerTitle: document.querySelector("#trigAnswerTitle"),
   specialLengthAnswers: document.querySelector("#specialLengthAnswers"),
   specialLengthRows: [...document.querySelectorAll(".special-length-row")],
+  boundaryAngleAnswer: document.querySelector("#boundaryAngleAnswer"),
+  boundaryQuestion: document.querySelector("#boundaryQuestion"),
+  boundaryExpression: document.querySelector("#boundaryExpression"),
+  boundaryInputLabel: document.querySelector("#boundaryInputLabel"),
+  boundaryAngleInput: document.querySelector("#boundaryAngleInput"),
+  boundaryResultMark: document.querySelector("#boundaryResultMark"),
   mathSymbolToolbar: document.querySelector("#mathSymbolToolbar"),
   insertRootButton: document.querySelector("#insertRootButton"),
   lengthAnswer: document.querySelector("#lengthAnswer"),
@@ -202,26 +217,28 @@ function updateTrigLabels(angle = null) {
     row.querySelector(".formula-name").innerHTML = `<span>${ratio}</span> ${angleLabel}`;
     row.querySelector('[data-part="numerator"]').setAttribute("aria-label", `${koreanNames[ratio]} ${spokenAngle} 분자`);
     row.querySelector('[data-part="denominator"]').setAttribute("aria-label", `${koreanNames[ratio]} ${spokenAngle} 분모`);
+    row.querySelector('[data-refined-part="numerator"]').setAttribute("aria-label", `약분 또는 유리화한 ${koreanNames[ratio]} ${spokenAngle} 분자`);
+    row.querySelector('[data-refined-part="denominator"]').setAttribute("aria-label", `약분 또는 유리화한 ${koreanNames[ratio]} ${spokenAngle} 분모`);
   });
 }
 
 function syncAngleMode() {
-  if (state.specialMode === "3-3" && !["30", "45"].includes(state.angleMode)) state.angleMode = "30";
+  if (state.specialMode === "3-3" && !["30", "45", "mixed"].includes(state.angleMode)) state.angleMode = "mixed";
   const isLengthPractice = state.specialMode === "3-3";
   els.angleSelectorTitle.textContent = isLengthPractice ? "특수각 삼각형 유형을 선택하세요" : "연습할 특수각을 선택하세요";
   els.angleSelectorDescription.textContent = isLengthPractice
-    ? "30°·60°·90°와 45°·45°·90° 두 유형으로 연습합니다."
+    ? "두 특수 직각삼각형을 따로 또는 혼합해서 연습합니다."
     : "혼합 연습에서는 30°, 45°, 60°가 무작위로 나옵니다.";
   els.angleButtons.forEach(button => {
     const active = button.dataset.angleOption === state.angleMode;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
-    button.hidden = isLengthPractice && ["60", "mixed"].includes(button.dataset.angleOption);
+    button.hidden = isLengthPractice && button.dataset.angleOption === "60";
     if (button.dataset.angleOption === "30") button.textContent = state.specialMode === "3-3" ? "30°·60° 삼각형" : "30° 연습";
     if (button.dataset.angleOption === "45") button.textContent = state.specialMode === "3-3" ? "45° 삼각형" : "45° 연습";
-    if (button.dataset.angleOption === "mixed") button.textContent = "특수각 혼합";
+    if (button.dataset.angleOption === "mixed") button.textContent = state.specialMode === "3-3" ? "혼합 유형" : "특수각 혼합";
   });
-  els.angleSelector.hidden = state.stage !== "3";
+  els.angleSelector.hidden = state.stage !== "3" || state.specialMode === "3-4";
 }
 
 function updateSpecialStageCopy() {
@@ -229,9 +246,14 @@ function updateSpecialStageCopy() {
   const copies = {
     "3-1": ["삼각형으로 특수각의 삼각비를 구해 보세요", "여러 크기의 특수 직각삼각형에서 변의 비를 찾아 계산하세요."],
     "3-2": ["그림 없이 특수각의 값을 써 보세요", "30°, 45°, 60°의 sin, cos, tan 값을 바로 떠올려 입력하세요."],
-    "3-3": ["주어진 한 변으로 나머지 변을 구해 보세요", "특수 직각삼각형의 변의 비를 이용해 물음표 두 개를 완성하세요."]
+    "3-3": ["주어진 한 변으로 나머지 변을 구해 보세요", "특수 직각삼각형의 변의 비를 이용해 물음표 두 개를 완성하세요."],
+    "3-4": ["0°와 90°의 삼각비 값을 구해 보세요", "sin 0°, cos 0°, tan 0°, sin 90°, cos 90°의 값을 익혀 보세요."]
   };
   [els.stageTitle.textContent, els.stageDescription.textContent] = copies[state.specialMode];
+  const boundaryMode = state.specialMode === "3-4";
+  els.hintText.innerHTML = boundaryMode
+    ? "<b>단위원의 좌표를 떠올려 보세요.</b><p>0°는 (1, 0), 90°는 (0, 1)입니다. cos는 x좌표, sin은 y좌표이고 tan 0°는 sin 0° / cos 0°로 구할 수 있어요.</p>"
+    : `<b>특수 직각삼각형의 변의 비를 떠올려 보세요.</b><p>${stageInfo["3"].hint}</p>`;
 }
 
 function syncSpecialMode() {
@@ -243,17 +265,22 @@ function syncSpecialMode() {
   const isStageThree = state.stage === "3";
   const isDirectValues = isStageThree && state.specialMode === "3-2";
   const isLengthPractice = isStageThree && state.specialMode === "3-3";
+  const isBoundaryPractice = isStageThree && state.specialMode === "3-4";
   els.specialModeSelector.hidden = !isStageThree;
-  els.ratioSelector.hidden = isLengthPractice;
-  els.trigAnswers.hidden = isLengthPractice;
+  els.ratioSelector.hidden = isStageThree;
+  els.trigAnswers.hidden = isLengthPractice || isBoundaryPractice;
   els.specialLengthAnswers.hidden = !isLengthPractice;
-  els.practiceGrid.classList.toggle("no-diagram", isDirectValues);
+  els.boundaryAngleAnswer.hidden = !isBoundaryPractice;
+  els.boundaryHintVisual.hidden = !isBoundaryPractice;
+  els.hintPanel.classList.toggle("boundary-hint", isBoundaryPractice);
+  els.mathSymbolToolbar.hidden = isBoundaryPractice;
+  els.practiceGrid.classList.toggle("no-diagram", isDirectValues || isBoundaryPractice);
   syncAngleMode();
   updateSpecialStageCopy();
 }
 
-function insertMathSymbol(symbol) {
-  let input = state.activeMathInput;
+function insertMathSymbol(symbol, preferredInput = null) {
+  let input = preferredInput || state.activeMathInput;
   if (!input || input.disabled || input.closest("[hidden]")) {
     input = state.stage === "2"
       ? els.lengthInput
@@ -285,7 +312,7 @@ function updateStageGoal() {
   els.stageThreeTab.disabled = !state.stageTwoUnlocked;
   els.stageThreeTab.setAttribute("aria-disabled", String(!state.stageTwoUnlocked));
   els.stageThreeDescription.textContent = state.stageTwoUnlocked
-    ? "30°·45°·60° 값 익히기"
+    ? "0°부터 90°까지 값 익히기"
     : `1단계 정답 ${STAGE_ONE_GOAL}개 후 열려요`;
 }
 
@@ -301,6 +328,12 @@ function showStageChoice() {
 function makeQuestion() {
   let question;
   do {
+    if (state.stage === "3" && state.specialMode === "3-4") {
+      const boundary = randomItem(boundaryAngleProblems);
+      question = { boundary, key: `3-4-${boundary.ratio}-${boundary.angle}` };
+      continue;
+    }
+
     let source;
     let angle = null;
     let scale = 1;
@@ -370,6 +403,9 @@ function escapeHtml(value) {
 
 function mathMarkup(value) {
   const text = String(value);
+  if (text === "√") {
+    return '<math class="inline-radical empty-radical" aria-label="루트"><msqrt><mspace width="0.7em" height="0.8em"></mspace></msqrt></math>';
+  }
   const radical = text.match(/^([+-]?(?:\d+(?:\.\d+)?)?)√(\d+(?:\.\d+)?)$/);
   if (!radical) return escapeHtml(text);
 
@@ -484,6 +520,15 @@ function sideRoleForVertices(role1, role2) {
 
 function renderQuestion() {
   const q = state.current;
+  if (q.boundary) {
+    els.svg.replaceChildren();
+    els.boundaryQuestion.textContent = `${q.boundary.label}의 값을 입력하세요`;
+    els.boundaryExpression.textContent = q.boundary.label;
+    els.boundaryInputLabel.textContent = `${q.boundary.label}의 값`;
+    els.boundaryAngleInput.setAttribute("aria-label", `${q.boundary.label}의 값`);
+    return;
+  }
+
   const points = pointsForSideLengths(q.layout, q.values);
   updateTrigLabels(q.angle);
   els.svg.replaceChildren();
@@ -498,7 +543,10 @@ function renderQuestion() {
     const j = (i + 1) % 3;
     const role = sideRoleForVertices(q.roleAtVertex[i], q.roleAtVertex[j]);
     const isMissing = q.missing === role || q.missingSides.includes(role);
-    renderSideLabel(points[i], points[j], role, isMissing ? "?" : q.labels[role]);
+    const solvedStageTwoSide = state.stage === "2"
+      && q.missing === role
+      && nearlyEqual(parseMath(els.lengthInput.value), q.values[role]);
+    renderSideLabel(points[i], points[j], role, isMissing && !solvedStageTwoSide ? "?" : q.labels[role]);
   }
 
   const centroid = [points.reduce((s, p) => s + p[0], 0) / 3, points.reduce((s, p) => s + p[1], 0) / 3];
@@ -628,6 +676,33 @@ function parseMath(raw) {
 
 function nearlyEqual(a, b) {
   return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(b));
+}
+
+function greatestCommonDivisor(a, b) {
+  let x = Math.abs(Math.trunc(a));
+  let y = Math.abs(Math.trunc(b));
+  while (y) [x, y] = [y, x % y];
+  return x;
+}
+
+function integerCoefficient(raw) {
+  const value = raw.trim().toLowerCase().replaceAll(" ", "").replace(/^sqrt\(([^()]+)\)$/i, "√$1");
+  if (/^[+-]?\d+$/.test(value)) return Math.abs(Number(value));
+  const radical = value.match(/^([+-]?(?:\d+)?)\*?√\d+$/);
+  if (!radical) return null;
+  if (["", "+", "-"].includes(radical[1])) return 1;
+  return Math.abs(Number(radical[1]));
+}
+
+function fractionRefinementIssue(numeratorRaw, denominatorRaw) {
+  const denominatorText = denominatorRaw.trim().toLowerCase().replaceAll(" ", "");
+  if (denominatorText.includes("√") || denominatorText.includes("sqrt(")) return "rationalize";
+
+  const denominator = parseMath(denominatorRaw);
+  const numeratorFactor = integerCoefficient(numeratorRaw);
+  if (numeratorFactor !== null && Number.isInteger(denominator)
+    && greatestCommonDivisor(numeratorFactor, denominator) > 1) return "reduce";
+  return null;
 }
 
 function primeFactorization(number) {
@@ -764,18 +839,32 @@ function checkAnswer() {
   if (state.answered) return;
   let allCorrect = true;
   let hasEmpty = false;
+  let hasWrong = false;
+  let firstRefinementInput = null;
+  const refinementIssues = new Set();
   const isSpecialLengthPractice = state.stage === "3" && state.specialMode === "3-3";
+  const isBoundaryPractice = state.stage === "3" && state.specialMode === "3-4";
 
   if (state.stage === "2") {
     const raw = els.lengthInput.value;
     hasEmpty = !raw.trim();
     const lengthCorrect = nearlyEqual(parseMath(raw), state.current.values[state.current.missing]);
     allCorrect = allCorrect && lengthCorrect;
+    if (raw.trim() && !lengthCorrect) hasWrong = true;
     els.lengthInput.style.borderColor = lengthCorrect ? "#5a9c72" : "#c94e43";
     els.lengthInput.style.background = lengthCorrect ? "#f0f8f2" : "#fff7f5";
   }
 
-  if (isSpecialLengthPractice) {
+  if (isBoundaryPractice) {
+    const raw = els.boundaryAngleInput.value;
+    const correct = nearlyEqual(parseMath(raw), state.current.boundary.value);
+    hasEmpty = !raw.trim();
+    allCorrect = correct;
+    if (raw.trim() && !correct) hasWrong = true;
+    els.boundaryAngleAnswer.classList.toggle("correct", correct);
+    els.boundaryAngleAnswer.classList.toggle("incorrect", !correct);
+    els.boundaryResultMark.textContent = correct ? "✓" : "×";
+  } else if (isSpecialLengthPractice) {
     els.specialLengthRows.filter(row => !row.hidden).forEach(row => {
       const input = row.querySelector("input");
       const correct = nearlyEqual(parseMath(input.value), state.current.values[row.dataset.specialSide]);
@@ -784,6 +873,7 @@ function checkAnswer() {
       row.classList.toggle("incorrect", !correct);
       row.querySelector(".result-mark").textContent = correct ? "✓" : "×";
       allCorrect = allCorrect && correct;
+      if (input.value.trim() && !correct) hasWrong = true;
     });
   } else {
     const expected = {
@@ -794,24 +884,93 @@ function checkAnswer() {
     activeRatioRows().forEach(row => {
       const numeratorInput = row.querySelector('[data-part="numerator"]');
       const denominatorInput = row.querySelector('[data-part="denominator"]');
-      const numerator = parseMath(numeratorInput.value);
-      const denominator = parseMath(denominatorInput.value);
-      const correct = denominator !== 0 && nearlyEqual(numerator / denominator, expected[row.dataset.ratio]);
-      if (!numeratorInput.value.trim() || !denominatorInput.value.trim()) hasEmpty = true;
-      row.classList.toggle("correct", correct);
-      row.classList.toggle("incorrect", !correct);
-      row.querySelector(".result-mark").textContent = correct ? "✓" : "×";
-      allCorrect = allCorrect && correct;
+      const refinement = row.querySelector(".refinement-answer");
+      const initialMark = row.querySelector(".initial-result-mark");
+
+      if (refinement.hidden) {
+        const numeratorRaw = numeratorInput.value;
+        const denominatorRaw = denominatorInput.value;
+        if (!numeratorRaw.trim() || !denominatorRaw.trim()) hasEmpty = true;
+        const numerator = parseMath(numeratorRaw);
+        const denominator = parseMath(denominatorRaw);
+        const equivalent = denominator !== 0 && nearlyEqual(numerator / denominator, expected[row.dataset.ratio]);
+
+        if (!equivalent) {
+          row.classList.remove("correct", "partial", "needs-refinement");
+          row.classList.add("incorrect");
+          initialMark.textContent = "×";
+          allCorrect = false;
+          if (numeratorRaw.trim() && denominatorRaw.trim()) hasWrong = true;
+          return;
+        }
+
+        const issue = fractionRefinementIssue(numeratorRaw, denominatorRaw);
+        if (issue) {
+          refinement.hidden = false;
+          row.classList.remove("correct", "incorrect");
+          row.classList.add("partial", "needs-refinement");
+          numeratorInput.disabled = true;
+          denominatorInput.disabled = true;
+          initialMark.textContent = "✓";
+          refinementIssues.add(issue);
+          firstRefinementInput ||= refinement.querySelector('[data-refined-part="numerator"]');
+          allCorrect = false;
+          return;
+        }
+
+        row.classList.remove("incorrect", "partial", "needs-refinement");
+        row.classList.add("correct");
+        initialMark.textContent = "✓";
+        return;
+      }
+
+      const refinedNumeratorInput = refinement.querySelector('[data-refined-part="numerator"]');
+      const refinedDenominatorInput = refinement.querySelector('[data-refined-part="denominator"]');
+      const numeratorRaw = refinedNumeratorInput.value;
+      const denominatorRaw = refinedDenominatorInput.value;
+      if (!numeratorRaw.trim() || !denominatorRaw.trim()) hasEmpty = true;
+      const numerator = parseMath(numeratorRaw);
+      const denominator = parseMath(denominatorRaw);
+      const equivalent = denominator !== 0 && nearlyEqual(numerator / denominator, expected[row.dataset.ratio]);
+      const issue = equivalent ? fractionRefinementIssue(numeratorRaw, denominatorRaw) : null;
+      const refinedCorrect = equivalent && !issue;
+
+      refinement.classList.toggle("correct", refinedCorrect);
+      refinement.classList.toggle("incorrect", !refinedCorrect && !issue);
+      refinement.querySelector(".refinement-result-mark").textContent = refinedCorrect ? "✓" : equivalent ? "!" : "×";
+      row.classList.toggle("correct", refinedCorrect);
+      row.classList.toggle("partial", !refinedCorrect);
+      row.classList.remove("incorrect");
+      allCorrect = allCorrect && refinedCorrect;
+      if (issue) {
+        refinementIssues.add(issue);
+        firstRefinementInput ||= refinedNumeratorInput;
+      } else if (numeratorRaw.trim() && denominatorRaw.trim() && !equivalent) {
+        hasWrong = true;
+      }
     });
   }
 
   if (hasEmpty) {
-    const message = isSpecialLengthPractice
+    const message = isBoundaryPractice
+      ? "삼각비의 값을 입력해 주세요."
+      : isSpecialLengthPractice
       ? "물음표로 표시된 두 변의 길이를 모두 입력해 주세요."
       : state.stage === "2"
       ? "빠진 변의 길이와 선택한 삼각비의 분자·분모를 모두 입력해 주세요."
       : "선택한 삼각비의 분자와 분모를 모두 입력해 주세요.";
     setFeedback("error", "빈칸이 있어요.", message);
+    return;
+  }
+
+  if (refinementIssues.size && !hasWrong) {
+    const title = refinementIssues.size > 1
+      ? "맞았습니다. 약분하고 분모를 유리화하세요."
+      : refinementIssues.has("rationalize")
+        ? "맞았습니다. 분모를 유리화하세요."
+        : "맞았습니다. 약분하세요.";
+    setFeedback("", title, "오른쪽에 새로 생긴 분수 칸에 정리한 값을 입력하세요.");
+    firstRefinementInput?.focus();
     return;
   }
 
@@ -847,6 +1006,9 @@ function answerExplanation() {
       : state.ratioMode === "cos" ? "cos A는 인접변/빗변"
         : "tan A는 대변/인접변";
   if (state.stage === "3") {
+    if (state.specialMode === "3-4") {
+      return `${q.boundary.label} = ${q.boundary.value}입니다.`;
+    }
     if (state.specialMode === "3-3") {
       const sideNames = { adjacent: "변 AB", opposite: "변 BC", hyp: "변 AC" };
       const answers = q.missingSides.map(role => `${sideNames[role]} = ${q.labels[role]}`).join(", ");
@@ -866,6 +1028,9 @@ function answerExplanation() {
 }
 
 function wrongAnswerHint() {
+  if (state.stage === "3" && state.specialMode === "3-4") {
+    return "단위원에서 0°는 점 (1, 0), 90°는 점 (0, 1)이고, cos는 x좌표, sin은 y좌표예요.";
+  }
   if (state.stage === "3") return state.current.angle === 45
     ? "45°-45°-90° 삼각형의 변의 비 1 : 1 : √2를 이용해 보세요."
     : "30°-60°-90° 삼각형에서 30°의 대변부터 1 : √3 : 2 순서예요.";
@@ -885,9 +1050,12 @@ function setFeedback(type, title, body) {
 function clearInputs() {
   els.stageComplete.hidden = true;
   document.querySelectorAll(".formula-row").forEach(row => {
-    row.classList.remove("correct", "incorrect");
+    row.classList.remove("correct", "incorrect", "partial", "needs-refinement");
     row.querySelectorAll("input").forEach(input => { input.value = ""; input.disabled = false; });
-    row.querySelector(".result-mark").textContent = "";
+    row.querySelectorAll(".result-mark").forEach(mark => { mark.textContent = ""; });
+    const refinement = row.querySelector(".refinement-answer");
+    refinement.hidden = true;
+    refinement.classList.remove("correct", "incorrect");
   });
   els.lengthInput.value = "";
   els.lengthInput.disabled = false;
@@ -899,6 +1067,10 @@ function clearInputs() {
     input.disabled = false;
     row.querySelector(".result-mark").textContent = "";
   });
+  els.boundaryAngleInput.value = "";
+  els.boundaryAngleInput.disabled = false;
+  els.boundaryAngleAnswer.classList.remove("correct", "incorrect");
+  els.boundaryResultMark.textContent = "";
   resetCalculator();
   els.checkButton.hidden = false;
   els.resetButton.hidden = false;
@@ -908,6 +1080,8 @@ function clearInputs() {
     ? "빠진 변을 먼저 구한 뒤 선택한 삼각비까지 완성하세요."
     : state.stage === "3" && state.specialMode === "3-3"
       ? "주어진 변을 기준으로 특수 직각삼각형의 나머지 두 변을 구하세요."
+      : state.stage === "3" && state.specialMode === "3-4"
+        ? "단위원의 좌표를 떠올리며 0°와 90°의 삼각비 값을 입력하세요."
       : state.stage === "3" && state.specialMode === "3-2"
         ? "그림 없이 특수각의 sin, cos, tan 값을 바로 써 보세요."
         : state.stage === "3"
@@ -922,10 +1096,13 @@ function disableInputs(disabled) {
 function resetCurrentAnswer() {
   if (state.answered) return;
   clearInputs();
+  if (state.stage === "2") renderQuestion();
   const first = state.stage === "2"
     ? els.lengthInput
     : state.stage === "3" && state.specialMode === "3-3"
       ? els.specialLengthRows.find(row => !row.hidden).querySelector("input")
+      : state.stage === "3" && state.specialMode === "3-4"
+        ? els.boundaryAngleInput
       : activeRatioRows()[0].querySelector("input");
   first.focus();
 }
@@ -955,8 +1132,10 @@ function changeAngleMode(mode) {
 function changeSpecialMode(mode) {
   if (state.pendingStageChoice || mode === state.specialMode) return;
   state.specialMode = mode;
-  if (mode === "3-3" && !["30", "45"].includes(state.angleMode)) state.angleMode = "30";
+  if (["3-1", "3-2"].includes(mode)) state.ratioMode = "all";
+  if (mode === "3-3" && !["30", "45", "mixed"].includes(state.angleMode)) state.angleMode = "mixed";
   state.activeMathInput = null;
+  syncRatioMode();
   syncSpecialMode();
   makeQuestion();
 }
@@ -968,6 +1147,7 @@ function changeStage(stage, force = false) {
   state.activeMathInput = null;
   els.stageComplete.hidden = true;
   state.stage = stage;
+  if (stage === "3" && ["3-1", "3-2"].includes(state.specialMode)) state.ratioMode = "all";
   const info = stageInfo[stage];
   els.tabs.forEach(tab => {
     const active = tab.dataset.stage === stage;
@@ -977,6 +1157,7 @@ function changeStage(stage, force = false) {
   els.stageBadge.textContent = `${stage}단계`;
   els.stageTitle.textContent = info.title;
   els.stageDescription.textContent = info.description;
+  els.practiceGrid.classList.toggle("stage-two", stage === "2");
   const hintTitle = stage === "2" ? "피타고라스 정리를 떠올려 보세요."
     : stage === "3" ? "특수 직각삼각형의 변의 비를 떠올려 보세요."
       : "각 A에서 바라보세요.";
@@ -1039,8 +1220,16 @@ els.operationButtons.forEach(button => button.addEventListener("click", () => {
 }));
 els.calcFirst.addEventListener("input", calculateSquares);
 els.calcSecond.addEventListener("input", calculateSquares);
+els.lengthInput.addEventListener("input", () => {
+  if (state.stage === "2" && state.current) renderQuestion();
+});
 els.calculateButton.addEventListener("click", toggleCalculationSteps);
 els.insertRootButton.addEventListener("click", () => insertMathSymbol("√"));
+document.querySelectorAll("[data-root-target]").forEach(button => {
+  button.addEventListener("click", () => {
+    insertMathSymbol("√", document.getElementById(button.dataset.rootTarget));
+  });
+});
 document.querySelectorAll(".answer-panel input").forEach(input => input.addEventListener("focus", () => {
   state.activeMathInput = input;
 }));
@@ -1057,6 +1246,6 @@ const requestedAngle = new URLSearchParams(window.location.search).get("angle");
 const requestedSpecialMode = new URLSearchParams(window.location.search).get("special");
 if (["sin", "cos", "tan", "all"].includes(requestedRatio)) state.ratioMode = requestedRatio;
 if (["30", "45", "60", "mixed"].includes(requestedAngle)) state.angleMode = requestedAngle;
-if (["3-1", "3-2", "3-3"].includes(requestedSpecialMode)) state.specialMode = requestedSpecialMode;
+if (["3-1", "3-2", "3-3", "3-4"].includes(requestedSpecialMode)) state.specialMode = requestedSpecialMode;
 const initialStage = { "1": "1", "1-1": "1", "1-2": "1" }[requestedStage] || "1";
 changeStage(initialStage);

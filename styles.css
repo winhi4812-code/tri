@@ -32,7 +32,7 @@ body {
 }
 
 button, input { font: inherit; }
-button { color: inherit; }
+button { color: inherit; touch-action: manipulation; }
 
 .topbar {
   height: 76px;
@@ -137,6 +137,7 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
   border: 1px solid var(--line);
   border-radius: 20px;
   overflow: hidden;
+  overflow: clip;
   background: var(--card);
   box-shadow: var(--shadow);
 }
@@ -178,11 +179,29 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 .hint-icon { width: 38px; height: 38px; display: grid; place-items: center; border: 2px solid var(--green); border-radius: 50%; font: italic 20px "DM Serif Display", serif; }
 .hint-panel b { font-size: 14px; }
 .hint-panel p { margin: 3px 0 0; color: #48655e; font-size: 13px; }
+.hint-panel.boundary-hint { display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; }
+.boundary-hint-visual { grid-column: 1 / -1; margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.boundary-hint-visual figure { min-width: 0; margin: 0; padding: 10px; border: 1px solid #cbd9d1; border-radius: 11px; background: rgba(255,255,255,.72); }
+.boundary-hint-visual svg { width: 100%; height: auto; display: block; }
+.boundary-hint-visual figcaption { margin-top: 5px; display: flex; align-items: baseline; justify-content: center; gap: 6px; color: #48655e; text-align: center; }
+.boundary-hint-visual figcaption b { color: var(--green); font: italic 17px "DM Serif Display", serif; }
+.boundary-hint-visual figcaption span { font-size: 10px; }
+.unit-arc { fill: none; stroke: #4b5a56; stroke-width: 2.4; }
+.chart-axis { fill: none; stroke: #77817d; stroke-width: 2; stroke-linecap: round; }
+.projection-guide { fill: none; stroke: #aebce3; stroke-width: 2; }
+.projection-guide path { vector-effect: non-scaling-stroke; }
+.focus-ray { fill: none; stroke: #536fb5; stroke-width: 3; }
+.focus-measure { fill: none; stroke: var(--coral); stroke-width: 4; }
+.tangent-line { fill: none; stroke: #65706c; stroke-width: 2.5; }
+.angle-mark { fill: none; stroke: var(--coral); stroke-width: 2.5; }
+.chart-origin, .chart-one, .angle-label { fill: var(--ink); font: italic 14px "DM Serif Display", serif; }
+.measure-label { fill: var(--coral); font: italic 15px "DM Serif Display", serif; writing-mode: vertical-rl; }
+.measure-label.horizontal { writing-mode: horizontal-tb; text-anchor: middle; }
 
 .special-mode-selector { padding: 16px 34px; display: grid; grid-template-columns: minmax(190px, .7fr) 1.3fr; align-items: center; gap: 20px; border-bottom: 1px solid var(--line); background: #fffdf8; }
 .special-mode-selector b { display: block; font-size: 14px; }
 .special-mode-selector small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
-.special-mode-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.special-mode-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .special-mode-option { min-height: 54px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; border: 1px solid #ddcfbd; border-radius: 11px; background: white; color: var(--muted); text-align: left; cursor: pointer; }
 .special-mode-option strong { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #f4eee4; color: var(--coral); font: 15px "DM Serif Display", serif; }
 .special-mode-option span { font-size: 11px; font-weight: 700; line-height: 1.35; }
@@ -252,6 +271,7 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 .practice-grid.no-diagram .diagram-panel { display: none; }
 .practice-grid.no-diagram .answer-panel { width: min(620px, 100%); min-height: 540px; margin: 0 auto; }
 .diagram-panel { position: relative; min-width: 0; padding: 28px 32px; border-right: 1px solid var(--line); background: #fbf8f0; }
+.diagram-sticky { position: sticky; top: 96px; }
 .diagram-panel::before {
   content: "";
   position: absolute;
@@ -296,6 +316,8 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
   min-height: 104px;
   border-bottom: 1px solid #ebe6da;
 }
+.formula-row.needs-refinement { grid-template-columns: 68px 18px 76px 20px minmax(112px, 1fr); }
+.formula-row.needs-refinement > .fraction-input { width: 76px; }
 .formula-row:last-child { border-bottom: 0; }
 .formula-name { font: italic 26px "DM Serif Display", serif; }
 .formula-name span { font-style: normal; }
@@ -318,6 +340,15 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 .fraction-input input:focus, .single-answer input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(233,111,81,.13); }
 .formula-row.correct input { border-color: #5a9c72; background: #f0f8f2; }
 .formula-row.incorrect input { border-color: var(--red); background: #fff7f5; }
+.formula-row.partial > .fraction-input input { border-color: var(--gold); background: #fffaf0; }
+.formula-row.partial > .initial-result-mark { color: #b98727; }
+.refinement-answer { display: grid; grid-template-columns: 16px 76px 22px; align-items: center; justify-content: start; gap: 4px; }
+.refinement-answer[hidden] { display: none; }
+.refinement-answer .fraction-input { width: 76px; }
+.refinement-answer.correct input { border-color: #5a9c72; background: #f0f8f2; }
+.refinement-answer.incorrect input { border-color: var(--red); background: #fff7f5; }
+.refinement-answer.correct .result-mark { color: #40815a; }
+.refinement-answer.incorrect .result-mark { color: var(--red); }
 .result-mark { font-size: 23px; font-weight: 800; text-align: center; }
 .correct .result-mark { color: #40815a; }
 .incorrect .result-mark { color: var(--red); }
@@ -327,6 +358,20 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 .length-answer > p:first-child { font-size: 17px; font-weight: 700; }
 .single-answer { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 20px 0 12px; }
 .single-answer input { width: 180px; height: 62px; border: 2px solid #cfcabc; border-radius: 12px; outline: 0; text-align: center; font-size: 24px; font-weight: 800; }
+.nearby-root-button {
+  min-height: 38px;
+  padding: 6px 13px;
+  border: 1px solid #e3b8aa;
+  border-radius: 9px;
+  background: #fff9f5;
+  color: #8d4a3a;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.nearby-root-button:hover { border-color: var(--coral); background: var(--coral-soft); }
+.root-button-symbol { display: inline-block; flex: 0 0 auto; margin-right: 4px; color: var(--coral); font-size: 23px; line-height: 1; vertical-align: -.22em; }
+.root-button-symbol msqrt { color: inherit; }
 .unit { font-size: 18px; font-weight: 700; }
 .input-help { color: var(--muted); font-size: 12px; }
 kbd { border: 1px solid #cbc6ba; border-bottom-width: 2px; border-radius: 4px; background: #f5f1e8; padding: 1px 5px; font-family: inherit; }
@@ -344,6 +389,19 @@ kbd { border: 1px solid #cbc6ba; border-bottom-width: 2px; border-radius: 4px; b
 .special-length-row.incorrect .result-mark { color: var(--red); }
 .special-length-row .math-input-shell { width: 100%; height: 48px; }
 .special-length-row .math-input-shell input { height: 100%; }
+
+.boundary-angle-answer { order: 1; margin-bottom: 26px; text-align: center; }
+.boundary-angle-answer > p:first-child { margin: 0 0 22px; font-size: 17px; font-weight: 800; }
+.boundary-equation { display: grid; grid-template-columns: max-content 24px 120px 28px; align-items: center; justify-content: center; gap: 10px; }
+.boundary-expression { font: italic 28px "DM Serif Display", serif; }
+.boundary-equation label, .boundary-equation .math-input-shell { width: 120px; height: 62px; }
+.boundary-equation input { width: 100%; height: 100%; border: 2px solid #cfcabc; border-radius: 12px; outline: 0; background: white; color: var(--ink); text-align: center; font-size: 24px; font-weight: 800; }
+.boundary-equation input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(233,111,81,.13); }
+.boundary-angle-answer.correct input { border-color: #5a9c72; background: #f0f8f2; }
+.boundary-angle-answer.incorrect input { border-color: var(--red); background: #fff7f5; }
+.boundary-angle-answer.correct .result-mark { color: #40815a; }
+.boundary-angle-answer.incorrect .result-mark { color: var(--red); }
+.boundary-angle-answer .input-help { margin-top: 18px; }
 
 .math-calculator { margin: -13px 0 25px; border: 1px solid #cbd9d1; border-radius: 13px; overflow: hidden; background: #f7fbf8; }
 .calculator-toggle { width: 100%; min-height: 68px; padding: 12px 15px; display: grid; grid-template-columns: 42px 1fr 24px; align-items: center; gap: 11px; border: 0; background: transparent; text-align: left; cursor: pointer; }
@@ -370,6 +428,19 @@ kbd { border: 1px solid #cbc6ba; border-bottom-width: 2px; border-radius: 4px; b
 .calculator-answer .inline-radical { font-size: 22px; }
 .calculation-step .inline-radical { font-size: 1.18em; }
 .calculator-answer.error { color: var(--red); font-size: 11px; }
+.calculator-root-actions { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.calculator-root-actions button {
+  min-height: 36px;
+  border: 1px solid #cbd9d1;
+  border-radius: 8px;
+  background: #f7fbf8;
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.calculator-root-actions button:hover { border-color: var(--green); background: var(--green-soft); }
+.calculator-root-actions .root-button-symbol { font-size: 19px; }
 .calculator-status { min-height: 19px; margin: 9px 0 0; color: var(--muted); font-size: 11px; text-align: center; }
 .calculate-button { width: 100%; height: 42px; margin-top: 8px; border: 0; border-radius: 8px; background: var(--green); color: white; font-size: 13px; font-weight: 800; cursor: pointer; }
 .calculate-button span { display: inline-block; margin-left: 6px; transition: transform .2s; }
@@ -388,7 +459,7 @@ kbd { border: 1px solid #cbc6ba; border-bottom-width: 2px; border-radius: 4px; b
 .math-symbol-toolbar > span { color: var(--muted); font-size: 11px; }
 .math-symbol-toolbar button { min-height: 42px; padding: 7px 13px; display: inline-flex; align-items: center; gap: 7px; border: 1px solid #e3b8aa; border-radius: 9px; background: white; color: #8d4a3a; font-size: 12px; font-weight: 800; cursor: pointer; }
 .math-symbol-toolbar button:hover { border-color: var(--coral); background: var(--coral-soft); }
-.math-symbol-toolbar button b { color: var(--coral); font: 25px/1 "DM Serif Display", serif; }
+.math-symbol-toolbar .root-button-symbol { font-size: 25px; }
 
 .fraction-input input, .single-answer input, .calculator-expression input { font-family: "Cambria Math", "STIX Two Math", "Noto Sans KR", sans-serif; line-height: 1.25; }
 
@@ -402,6 +473,7 @@ kbd { border: 1px solid #cbc6ba; border-bottom-width: 2px; border-radius: 4px; b
 .math-input-preview { position: absolute; z-index: 2; inset: 2px; display: grid; place-items: center; overflow: hidden; color: var(--ink); pointer-events: none; }
 .math-input-preview:empty { display: none; }
 .math-input-preview .inline-radical { font-size: 23px; }
+.math-input-preview .empty-radical { font-size: 25px; }
 .calculator-expression .math-input-preview .inline-radical { font-size: 19px; }
 .math-input-shell input.has-math-preview { color: transparent !important; caret-color: var(--ink); }
 .calculator-expression sup { z-index: 3; }
@@ -460,41 +532,120 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
   .stage-nav { grid-template-columns: 1fr; }
   .stage-tab { min-height: 70px; }
   .special-mode-selector { grid-template-columns: 1fr; }
+  .special-mode-options { grid-template-columns: repeat(2, 1fr); }
   .ratio-selector, .angle-selector { align-items: flex-start; }
   .ratio-options, .angle-options { grid-template-columns: repeat(2, 1fr); width: min(100%, 360px); }
   .ratio-option, .angle-option { width: 100%; }
   .practice-grid { grid-template-columns: 1fr; }
+  .practice-grid.stage-two { display: block; }
   .diagram-panel { border-right: 0; border-bottom: 1px solid var(--line); }
+  .diagram-sticky { position: static; }
+  .practice-grid.stage-two .diagram-panel {
+    position: sticky;
+    top: 76px;
+    z-index: 10;
+    padding: 12px 18px;
+    box-shadow: 0 10px 24px rgba(23,53,47,.12);
+  }
+  .practice-grid.stage-two #triangleSvg { height: 220px; max-height: 30vh; }
+  .practice-grid.stage-two .diagram-note { display: none; }
   #triangleSvg { max-height: 410px; }
   .progress-section { grid-template-columns: 1fr; }
 }
 
+@media (min-width: 761px) and (max-width: 850px) {
+  .stage-nav { grid-template-columns: repeat(3, 1fr); }
+  .stage-tab { min-height: 82px; padding: 12px; gap: 9px; }
+  .stage-number { width: 38px; height: 38px; }
+  .stage-tab b { font-size: 13px; }
+  .stage-tab small { font-size: 10px; }
+  .practice-grid, .practice-grid.stage-two { display: grid; grid-template-columns: 1.02fr .98fr; }
+  .diagram-panel, .practice-grid.stage-two .diagram-panel {
+    position: relative;
+    top: auto;
+    z-index: auto;
+    padding: 22px 18px;
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+    box-shadow: none;
+  }
+  .diagram-sticky { position: sticky; top: 90px; }
+  #triangleSvg, .practice-grid.stage-two #triangleSvg { height: 330px; max-height: 43vw; }
+  .practice-grid.stage-two .diagram-note { display: block; }
+  .answer-panel { padding: 34px 24px 28px; }
+  .formula-row.needs-refinement { grid-template-columns: 52px 12px 62px 16px minmax(94px, 1fr); }
+  .formula-row.needs-refinement .formula-name { font-size: 21px; }
+  .formula-row.needs-refinement > .fraction-input { width: 62px; }
+  .formula-row.needs-refinement .refinement-answer { grid-template-columns: 12px 62px 18px; gap: 2px; }
+  .formula-row.needs-refinement .refinement-answer .fraction-input { width: 62px; }
+}
+
+@media (min-width: 561px) and (max-width: 760px) {
+  .stage-nav { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stage-tab { min-height: 78px; padding: 10px; gap: 8px; }
+  .stage-number { width: 36px; height: 36px; }
+  .stage-tab b { font-size: 12px; }
+  .stage-tab small { display: none; }
+  #triangleSvg { height: 300px; max-height: 48vw; }
+}
+
 @media (max-width: 560px) {
-  .topbar { height: 64px; padding-inline: 16px; }
+  .topbar { height: 60px; padding-inline: 14px; }
+  .brand { gap: 8px; font-size: 14px; }
+  .brand-mark { width: 36px; height: 36px; }
   .top-status .status-label, .status-divider { display: none; }
   main { width: min(100% - 24px, 1160px); }
-  .hero { padding: 38px 3px 32px; }
-  .hero h1 { font-size: 38px; }
-  .hero-copy { font-size: 14px; }
-  .lesson-heading { padding: 22px 20px; align-items: flex-start; gap: 12px; }
+  .hero { padding: 25px 3px 22px; }
+  .hero .eyebrow { margin-bottom: 9px; }
+  .hero h1 { font-size: 34px; line-height: 1.1; }
+  .hero-copy { margin-top: 13px; font-size: 13px; line-height: 1.55; }
+  .stage-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
+  .stage-tab { min-height: 92px; padding: 9px 5px; flex-direction: column; justify-content: center; gap: 6px; text-align: center; }
+  .stage-number { width: 34px; height: 34px; font-size: 15px; }
+  .stage-tab b { font-size: 11px; line-height: 1.35; word-break: keep-all; }
+  .stage-tab small { display: none; }
+  .lesson-heading { min-height: 0; padding: 19px 18px; display: grid; grid-template-columns: 1fr; align-items: start; gap: 0; }
+  .lesson-heading > div { min-width: 0; }
   .lesson-heading h2 { font-size: 19px; }
-  .hint-button { flex: 0 0 auto; padding-right: 10px; font-size: 0; }
-  .hint-button span { margin: 0; }
+  .lesson-heading p { line-height: 1.55; overflow-wrap: anywhere; }
+  .hint-button { width: max-content; margin-top: 13px; padding: 8px 13px 8px 8px; font-size: 12px; }
+  .hint-button span { margin-right: 4px; }
   .hint-panel { margin: 16px 18px 0; }
+  .hint-panel.boundary-hint { grid-template-columns: 34px minmax(0, 1fr); padding: 14px; gap: 10px; }
+  .boundary-hint-visual { grid-template-columns: 1fr; gap: 9px; }
+  .boundary-hint-visual figure { width: min(100%, 280px); margin-inline: auto; padding: 8px; }
   .special-mode-selector { padding: 16px 18px; }
-  .special-mode-options { grid-template-columns: 1fr; }
-  .special-mode-option { min-height: 48px; }
+  .special-mode-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .special-mode-option { min-height: 58px; padding: 7px; gap: 6px; }
+  .special-mode-option strong { width: 30px; height: 30px; font-size: 13px; }
+  .special-mode-option span { font-size: 10px; }
   .ratio-selector, .angle-selector { padding: 17px 18px; flex-direction: column; gap: 12px; }
   .ratio-options, .angle-options { width: 100%; }
+  .ratio-option, .angle-option { min-height: 46px; }
   .diagram-panel { padding: 22px 14px; }
-  #triangleSvg { height: 320px; }
+  .practice-grid.stage-two .diagram-panel { top: 64px; padding: 8px 12px; }
+  .practice-grid.stage-two #triangleSvg { height: 180px; max-height: 28vh; }
+  #triangleSvg { height: 260px; }
+  .diagram-note { font-size: 10px; line-height: 1.45; }
   .answer-panel { padding: 25px 18px; }
   .formula-row { grid-template-columns: 80px 18px 88px 25px; }
+  .formula-row.needs-refinement { grid-template-columns: 52px 12px 62px 16px minmax(94px, 1fr); }
+  .formula-row.needs-refinement .formula-name { font-size: 21px; }
+  .formula-row.needs-refinement > .fraction-input { width: 62px; }
+  .formula-row.needs-refinement .refinement-answer { grid-template-columns: 12px 62px 18px; gap: 2px; }
+  .formula-row.needs-refinement .refinement-answer .fraction-input { width: 62px; }
   .calculator-equation { grid-template-columns: 20px minmax(0, 1fr); }
   .calculator-expression { grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr); }
   .calculator-equals { display: none; }
   .calculator-answer { grid-column: 1 / -1; min-height: 42px; }
   .math-symbol-toolbar { flex-direction: column; gap: 6px; }
+  .action-row, .next-button {
+    position: sticky;
+    bottom: 8px;
+    z-index: 8;
+  }
+  .action-row { margin: 15px -6px 0; padding: 7px; border: 1px solid rgba(221,216,202,.9); border-radius: 12px; background: rgba(255,253,248,.94); box-shadow: 0 8px 24px rgba(23,53,47,.12); backdrop-filter: blur(10px); }
+  .action-row button, .next-button { min-height: 52px; }
   .stage-complete { grid-template-columns: 50px 1fr; padding: 14px; }
   .stage-complete-score { width: 50px; height: 50px; font-size: 16px; }
   .stage-complete-actions { grid-template-columns: 1fr; }
@@ -505,4 +656,8 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+@media (hover: none) {
+  .stage-tab:hover, .ratio-option:hover, .angle-option:hover, .action-row button:hover, .next-button:hover { transform: none; }
 }
