@@ -1,6 +1,7 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 const STAGE_ONE_GOAL = 5;
+const AUTO_ADVANCE_DELAY = 1600;
 
 const stageInfo = {
   "1": {
@@ -100,6 +101,7 @@ const state = {
   angleMode: "mixed",
   specialMode: "3-1",
   stageOneCorrect: 0,
+  stageScores: { "1": 0, "2": 0, "3": 0 },
   stageTwoUnlocked: false,
   pendingStageChoice: false,
   activeMathInput: null,
@@ -110,6 +112,7 @@ const state = {
   correct: 0,
   streak: 0,
   bestStreak: 0,
+  nextQuestionTimer: null,
   answered: false,
   lastQuestionKey: ""
 };
@@ -121,6 +124,13 @@ const els = {
   stageTwoDescription: document.querySelector("#stageTwoDescription"),
   stageThreeTab: document.querySelector('[data-stage="3"]'),
   stageThreeDescription: document.querySelector("#stageThreeDescription"),
+  stageScoreCards: [...document.querySelectorAll(".stage-score-card")],
+  totalStageScore: document.querySelector("#totalStageScore"),
+  stageScoreValues: {
+    "1": document.querySelector("#stageOneScore"),
+    "2": document.querySelector("#stageTwoScore"),
+    "3": document.querySelector("#stageThreeScore")
+  },
   stageBadge: document.querySelector("#stageBadge"),
   stageTitle: document.querySelector("#stageTitle"),
   stageDescription: document.querySelector("#stageDescription"),
@@ -158,6 +168,7 @@ const els = {
   calculatorGuide: document.querySelector("#calculatorGuide"),
   calcFirst: document.querySelector("#calcFirst"),
   calcSecond: document.querySelector("#calcSecond"),
+  calculatorRootButton: document.querySelector("#calculatorRootButton"),
   operationButtons: [...document.querySelectorAll(".operation-button")],
   calculateButton: document.querySelector("#calculateButton"),
   calculatorAnswer: document.querySelector("#calculatorAnswer"),
@@ -273,7 +284,7 @@ function syncSpecialMode() {
   els.boundaryAngleAnswer.hidden = !isBoundaryPractice;
   els.boundaryHintVisual.hidden = !isBoundaryPractice;
   els.hintPanel.classList.toggle("boundary-hint", isBoundaryPractice);
-  els.mathSymbolToolbar.hidden = isBoundaryPractice;
+  els.mathSymbolToolbar.hidden = state.stage === "2" || isBoundaryPractice;
   els.practiceGrid.classList.toggle("no-diagram", isDirectValues || isBoundaryPractice);
   syncAngleMode();
   updateSpecialStageCopy();
@@ -296,6 +307,14 @@ function insertMathSymbol(symbol, preferredInput = null) {
   input.dispatchEvent(new Event("input", { bubbles: true }));
   input.focus();
   state.activeMathInput = input;
+}
+
+function insertCalculatorRoot() {
+  const calculatorInputs = [els.calcFirst, els.calcSecond];
+  const target = calculatorInputs.includes(state.activeMathInput)
+    ? state.activeMathInput
+    : calculatorInputs.find(input => !input.value.trim()) || els.calcFirst;
+  insertMathSymbol("√", target);
 }
 
 function updateStageGoal() {
@@ -325,7 +344,17 @@ function showStageChoice() {
   els.goToStageTwo.focus();
 }
 
+function scheduleNextQuestion() {
+  window.clearTimeout(state.nextQuestionTimer);
+  state.nextQuestionTimer = window.setTimeout(() => {
+    state.nextQuestionTimer = null;
+    if (state.answered && !state.pendingStageChoice) makeQuestion();
+  }, AUTO_ADVANCE_DELAY);
+}
+
 function makeQuestion() {
+  window.clearTimeout(state.nextQuestionTimer);
+  state.nextQuestionTimer = null;
   let question;
   do {
     if (state.stage === "3" && state.specialMode === "3-4") {
@@ -981,16 +1010,21 @@ function checkAnswer() {
     state.answered = true;
     state.solved += 1;
     state.correct += 1;
+    state.stageScores[state.stage] += 1;
     if (state.stage === "1") state.stageOneCorrect += 1;
     state.streak += 1;
     state.bestStreak = Math.max(state.bestStreak, state.streak);
-    setFeedback("success", "정답이에요!", answerExplanation());
+    const successMessage = reachedStageOneGoal
+      ? answerExplanation()
+      : `${answerExplanation()} 잠시 후 다음 문제로 넘어갑니다.`;
+    setFeedback("success", "정답이에요!", successMessage);
     els.checkButton.hidden = true;
     els.resetButton.hidden = true;
     els.nextButton.hidden = false;
     disableInputs(true);
     updateStageGoal();
     if (reachedStageOneGoal) showStageChoice();
+    else scheduleNextQuestion();
   } else {
     state.streak = 0;
     setFeedback("error", "한 번 더 살펴보세요.", wrongAnswerHint());
@@ -1154,6 +1188,9 @@ function changeStage(stage, force = false) {
     tab.classList.toggle("active", active);
     tab.setAttribute("aria-current", active ? "step" : "false");
   });
+  els.stageScoreCards.forEach(card => {
+    card.classList.toggle("active", card.dataset.scoreStage === stage);
+  });
   els.stageBadge.textContent = `${stage}단계`;
   els.stageTitle.textContent = info.title;
   els.stageDescription.textContent = info.description;
@@ -1177,6 +1214,11 @@ function changeStage(stage, force = false) {
 }
 
 function updateProgress() {
+  const totalStageScore = Object.values(state.stageScores).reduce((sum, score) => sum + score, 0);
+  els.totalStageScore.textContent = totalStageScore;
+  Object.entries(els.stageScoreValues).forEach(([stage, element]) => {
+    element.textContent = state.stageScores[stage];
+  });
   els.totalCorrect.textContent = state.correct;
   els.streak.textContent = state.streak;
   els.solvedCount.textContent = state.solved;
@@ -1225,6 +1267,7 @@ els.lengthInput.addEventListener("input", () => {
 });
 els.calculateButton.addEventListener("click", toggleCalculationSteps);
 els.insertRootButton.addEventListener("click", () => insertMathSymbol("√"));
+els.calculatorRootButton.addEventListener("click", insertCalculatorRoot);
 document.querySelectorAll("[data-root-target]").forEach(button => {
   button.addEventListener("click", () => {
     insertMathSymbol("√", document.getElementById(button.dataset.rootTarget));

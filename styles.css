@@ -95,12 +95,12 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 
 .stage-nav {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 18px;
 }
 
-.stage-tab {
+.stage-tab, .root-quest-link {
   min-height: 86px;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -113,7 +113,7 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
   cursor: pointer;
   transition: .2s ease;
 }
-.stage-tab:hover { transform: translateY(-2px); border-color: #aebbb3; }
+.stage-tab:hover, .root-quest-link:hover { transform: translateY(-2px); border-color: #aebbb3; }
 .stage-tab.active { background: var(--ink); border-color: var(--ink); color: white; box-shadow: 0 10px 25px rgba(23,53,47,.18); }
 .stage-tab:disabled { opacity: .58; cursor: not-allowed; filter: grayscale(.25); }
 .stage-tab:disabled:hover { transform: none; border-color: var(--line); }
@@ -132,6 +132,48 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 .stage-tab b { display: block; font-size: 15px; }
 .stage-tab small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
 .stage-tab.active small { color: rgba(255,255,255,.67); }
+.root-quest-link { border-color: #e3b8aa; background: #fff9f5; color: var(--ink); text-decoration: none; }
+.root-quest-link:hover { border-color: var(--coral); background: var(--coral-soft); }
+.root-quest-symbol {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--coral-soft);
+  color: var(--coral);
+  font: 28px "Cambria Math", "STIX Two Math", serif;
+}
+.root-quest-link b { display: block; font-size: 15px; }
+.root-quest-link small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+
+.stage-scoreboard {
+  margin: -3px 0 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.stage-scoreboard article {
+  min-height: 76px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #cfd8d3;
+  border-radius: 13px;
+  background: rgba(255,255,255,.58);
+  box-shadow: 0 5px 0 rgba(31,90,77,.08);
+}
+.stage-scoreboard article > span { color: var(--muted); font-size: 13px; font-weight: 800; }
+.stage-scoreboard strong { color: var(--ink); font-size: 21px; white-space: nowrap; }
+.stage-scoreboard strong span { font: 28px "DM Serif Display", serif; }
+.stage-score-card { transition: border-color .2s, background .2s; }
+.stage-score-card.active { border-color: #8fb1a2; background: var(--green-soft); }
+.total-score-card { border-color: var(--green) !important; background: var(--green) !important; box-shadow: 0 5px 0 #123f35 !important; }
+.total-score-card > span, .total-score-card strong { color: white !important; }
+.total-score-card strong span { color: #ffd96b; }
 
 .lesson-card {
   border: 1px solid var(--line);
@@ -301,8 +343,8 @@ main { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
 .length-answer { order: 1; }
 .special-length-answers { order: 1; }
 .math-calculator { order: 2; }
-.math-symbol-toolbar { order: 3; }
-.trig-answers { order: 4; display: grid; gap: 17px; }
+.trig-answers { order: 3; display: grid; gap: 17px; }
+.math-symbol-toolbar { order: 4; }
 .feedback { order: 5; }
 .stage-complete { order: 6; }
 .action-row { order: 7; }
@@ -428,9 +470,11 @@ kbd { border: 1px solid #cbc6ba; border-bottom-width: 2px; border-radius: 4px; b
 .calculator-answer .inline-radical { font-size: 22px; }
 .calculation-step .inline-radical { font-size: 1.18em; }
 .calculator-answer.error { color: var(--red); font-size: 11px; }
-.calculator-root-actions { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.calculator-root-actions { margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.calculator-root-actions > span { color: var(--muted); font-size: 11px; }
 .calculator-root-actions button {
   min-height: 36px;
+  padding: 6px 13px;
   border: 1px solid #cbd9d1;
   border-radius: 8px;
   background: #f7fbf8;
@@ -529,8 +573,9 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
 @media (max-width: 850px) {
   .hero { padding-top: 50px; }
   .hero::after { display: none; }
-  .stage-nav { grid-template-columns: 1fr; }
-  .stage-tab { min-height: 70px; }
+  .stage-nav { grid-template-columns: repeat(2, 1fr); }
+  .stage-tab, .root-quest-link { min-height: 70px; }
+  .stage-scoreboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .special-mode-selector { grid-template-columns: 1fr; }
   .special-mode-options { grid-template-columns: repeat(2, 1fr); }
   .ratio-selector, .angle-selector { align-items: flex-start; }
@@ -550,15 +595,16 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
   .practice-grid.stage-two #triangleSvg { height: 220px; max-height: 30vh; }
   .practice-grid.stage-two .diagram-note { display: none; }
   #triangleSvg { max-height: 410px; }
+  .math-symbol-toolbar { position: sticky; bottom: 12px; z-index: 9; box-shadow: 0 8px 24px rgba(23,53,47,.14); }
   .progress-section { grid-template-columns: 1fr; }
 }
 
 @media (min-width: 761px) and (max-width: 850px) {
-  .stage-nav { grid-template-columns: repeat(3, 1fr); }
-  .stage-tab { min-height: 82px; padding: 12px; gap: 9px; }
-  .stage-number { width: 38px; height: 38px; }
-  .stage-tab b { font-size: 13px; }
-  .stage-tab small { font-size: 10px; }
+  .stage-nav { grid-template-columns: repeat(4, 1fr); }
+  .stage-tab, .root-quest-link { min-height: 82px; padding: 12px; gap: 9px; }
+  .stage-number, .root-quest-symbol { width: 38px; height: 38px; }
+  .stage-tab b, .root-quest-link b { font-size: 13px; }
+  .stage-tab small, .root-quest-link small { font-size: 10px; }
   .practice-grid, .practice-grid.stage-two { display: grid; grid-template-columns: 1.02fr .98fr; }
   .diagram-panel, .practice-grid.stage-two .diagram-panel {
     position: relative;
@@ -581,11 +627,11 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
 }
 
 @media (min-width: 561px) and (max-width: 760px) {
-  .stage-nav { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stage-tab { min-height: 78px; padding: 10px; gap: 8px; }
-  .stage-number { width: 36px; height: 36px; }
-  .stage-tab b { font-size: 12px; }
-  .stage-tab small { display: none; }
+  .stage-nav { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .stage-tab, .root-quest-link { min-height: 78px; padding: 10px; gap: 8px; }
+  .stage-number, .root-quest-symbol { width: 36px; height: 36px; }
+  .stage-tab b, .root-quest-link b { font-size: 12px; }
+  .stage-tab small, .root-quest-link small { display: none; }
   #triangleSvg { height: 300px; max-height: 48vw; }
 }
 
@@ -599,11 +645,17 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
   .hero .eyebrow { margin-bottom: 9px; }
   .hero h1 { font-size: 34px; line-height: 1.1; }
   .hero-copy { margin-top: 13px; font-size: 13px; line-height: 1.55; }
-  .stage-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
-  .stage-tab { min-height: 92px; padding: 9px 5px; flex-direction: column; justify-content: center; gap: 6px; text-align: center; }
-  .stage-number { width: 34px; height: 34px; font-size: 15px; }
-  .stage-tab b { font-size: 11px; line-height: 1.35; word-break: keep-all; }
-  .stage-tab small { display: none; }
+  .stage-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
+  .stage-tab, .root-quest-link { min-height: 92px; padding: 9px 5px; flex-direction: column; justify-content: center; gap: 6px; text-align: center; }
+  .stage-number, .root-quest-symbol { width: 34px; height: 34px; font-size: 15px; }
+  .root-quest-symbol { font-size: 23px; }
+  .stage-tab b, .root-quest-link b { font-size: 11px; line-height: 1.35; word-break: keep-all; }
+  .stage-tab small, .root-quest-link small { display: none; }
+  .stage-scoreboard { gap: 6px; margin-bottom: 12px; }
+  .stage-scoreboard article { min-height: 64px; padding: 9px 12px; flex-direction: column; justify-content: center; gap: 2px; box-shadow: 0 3px 0 rgba(31,90,77,.08); }
+  .stage-scoreboard article > span { font-size: 11px; }
+  .stage-scoreboard strong { font-size: 16px; }
+  .stage-scoreboard strong span { font-size: 22px; }
   .lesson-heading { min-height: 0; padding: 19px 18px; display: grid; grid-template-columns: 1fr; align-items: start; gap: 0; }
   .lesson-heading > div { min-width: 0; }
   .lesson-heading h2 { font-size: 19px; }
@@ -638,7 +690,7 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
   .calculator-expression { grid-template-columns: minmax(0, 1fr) 58px minmax(0, 1fr); }
   .calculator-equals { display: none; }
   .calculator-answer { grid-column: 1 / -1; min-height: 42px; }
-  .math-symbol-toolbar { flex-direction: column; gap: 6px; }
+  .math-symbol-toolbar { bottom: 76px; flex-direction: column; gap: 6px; }
   .action-row, .next-button {
     position: sticky;
     bottom: 8px;
@@ -659,5 +711,5 @@ footer { padding: 28px 20px; border-top: 1px solid var(--line); color: #8a8c85; 
 }
 
 @media (hover: none) {
-  .stage-tab:hover, .ratio-option:hover, .angle-option:hover, .action-row button:hover, .next-button:hover { transform: none; }
+  .stage-tab:hover, .root-quest-link:hover, .ratio-option:hover, .angle-option:hover, .action-row button:hover, .next-button:hover { transform: none; }
 }

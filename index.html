@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f7f3ea">
   <title>삼각비 첫걸음</title>
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
   <header class="topbar">
@@ -42,7 +42,30 @@
         <span class="stage-number">3</span>
         <span><b>특수각 연습</b><small id="stageThreeDescription">1단계 정답 5개 후 열려요</small></span>
       </button>
+      <a class="root-quest-link" href="https://winhi4812-code.github.io/root/" target="_blank" rel="noopener noreferrer" aria-label="제곱근 원정대 새 창에서 열기">
+        <span class="root-quest-symbol" aria-hidden="true">√</span>
+        <span><b>제곱근 원정대</b><small>루트 연습하러 가기 <span aria-hidden="true">↗</span></small></span>
+      </a>
     </nav>
+
+    <section class="stage-scoreboard" aria-label="단계별 점수">
+      <article class="total-score-card">
+        <span>종합점수</span>
+        <strong><span id="totalStageScore">0</span>점</strong>
+      </article>
+      <article class="stage-score-card active" data-score-stage="1">
+        <span>1단계</span>
+        <strong><span id="stageOneScore">0</span>점</strong>
+      </article>
+      <article class="stage-score-card" data-score-stage="2">
+        <span>2단계</span>
+        <strong><span id="stageTwoScore">0</span>점</strong>
+      </article>
+      <article class="stage-score-card" data-score-stage="3">
+        <span>3단계</span>
+        <strong><span id="stageThreeScore">0</span>점</strong>
+      </article>
+    </section>
 
     <section class="lesson-card">
       <div class="lesson-heading">
@@ -307,7 +330,7 @@
           <div class="math-symbol-toolbar" id="mathSymbolToolbar" hidden>
             <span>답안 칸을 누른 뒤 사용하세요.</span>
             <button id="insertRootButton" type="button" aria-label="선택한 입력칸에 루트 기호 넣기">
-              <math class="root-button-symbol" aria-hidden="true"><msqrt><mspace width="0.6em" height="0.65em"></mspace></msqrt></math> 루트 기호 넣기
+              <math class="root-button-symbol" aria-hidden="true"><msqrt><mspace width="0.6em" height="0.65em"></mspace></msqrt></math> 루트 입력
             </button>
           </div>
 
@@ -341,8 +364,8 @@
                 <output class="calculator-answer" id="calculatorAnswer" aria-live="polite">?</output>
               </div>
               <div class="calculator-root-actions" aria-label="계산기 루트 기호 입력">
-                <button data-root-target="calcFirst" type="button"><math class="root-button-symbol" aria-hidden="true"><msqrt><mspace width="0.6em" height="0.65em"></mspace></msqrt></math> 첫째 칸에 넣기</button>
-                <button data-root-target="calcSecond" type="button"><math class="root-button-symbol" aria-hidden="true"><msqrt><mspace width="0.6em" height="0.65em"></mspace></msqrt></math> 둘째 칸에 넣기</button>
+                <span>입력할 칸을 누른 뒤 사용하세요.</span>
+                <button id="calculatorRootButton" type="button" aria-label="선택한 계산기 입력칸에 루트 기호 넣기"><math class="root-button-symbol" aria-hidden="true"><msqrt><mspace width="0.6em" height="0.65em"></mspace></msqrt></math> 루트 입력</button>
               </div>
               <p class="calculator-status" id="calculatorStatus">두 숫자를 입력하면 결과가 바로 나와요.</p>
               <button class="calculate-button" id="calculateButton" type="button" aria-expanded="false" disabled>중간 계산과정 보기 <span aria-hidden="true">⌄</span></button>
@@ -393,6 +416,6 @@
   </main>
 
   <footer>삼각형을 천천히 바라보는 것부터, 수학은 시작됩니다.</footer>
-  <script src="app.js?v=23"></script>
+  <script src="app.js?v=25"></script>
 </body>
 </html>
