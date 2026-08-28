@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f7f3ea">
   <title>삼각비 첫걸음</title>
-  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
   <header class="topbar">
@@ -170,6 +170,15 @@
           <b id="ratioSelectorTitle">구할 삼각비를 선택하세요</b>
           <small>선택한 항목만 문제에 표시됩니다.</small>
           <span class="stage-goal" id="stageGoal">1단계 정답 <strong>0 / 5</strong></span>
+          <div class="stage-unlock" id="stageUnlock">
+            <button class="stage-unlock-toggle" id="stageUnlockToggle" type="button" aria-expanded="false" aria-controls="stageUnlockForm">비밀번호로 단계 열기</button>
+            <form class="stage-unlock-form" id="stageUnlockForm" hidden>
+              <label class="sr-only" for="stageUnlockPassword">단계 잠금 해제 비밀번호</label>
+              <input id="stageUnlockPassword" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="비밀번호 4자리" aria-describedby="stageUnlockStatus">
+              <button type="submit">열기</button>
+            </form>
+            <span class="stage-unlock-status" id="stageUnlockStatus" aria-live="polite"></span>
+          </div>
         </div>
         <div class="ratio-options" role="group" aria-label="삼각비 선택">
           <button class="ratio-option" data-ratio-option="sin" type="button" aria-pressed="false">sin A</button>
@@ -259,6 +268,7 @@
             <div class="formula-row" data-ratio="sin">
               <div class="formula-name"><span>sin</span> A</div>
               <span class="equals">=</span>
+              <div class="answer-chain">
               <label class="fraction-input">
                 <span class="sr-only">사인 A 분자</span>
                 <input inputmode="text" autocomplete="off" data-part="numerator" aria-label="사인 A 분자">
@@ -278,10 +288,26 @@
                 </label>
                 <span class="result-mark refinement-result-mark" aria-live="polite"></span>
               </div>
+              <div class="refinement-answer second-refinement-answer" hidden>
+                <span class="equals">=</span>
+                <label class="fraction-input">
+                  <span class="sr-only">두 번째로 정리한 사인 분자</span>
+                  <input inputmode="text" autocomplete="off" data-refined-part="numerator" aria-label="두 번째로 정리한 사인 분자">
+                  <span class="fraction-line"></span>
+                  <span class="sr-only">두 번째로 정리한 사인 분모</span>
+                  <input inputmode="text" autocomplete="off" data-refined-part="denominator" aria-label="두 번째로 정리한 사인 분모">
+                </label>
+                <span class="result-mark refinement-result-mark" aria-live="polite"></span>
+              </div>
+              <button class="ratio-root-button" data-ratio-root="sin" type="button" aria-label="사인 답안 칸에 루트 기호 넣기" title="사인 답안에 루트 입력" hidden>
+                <span aria-hidden="true">√</span><span class="ratio-root-label">루트</span>
+              </button>
+              </div>
             </div>
             <div class="formula-row" data-ratio="cos">
               <div class="formula-name"><span>cos</span> A</div>
               <span class="equals">=</span>
+              <div class="answer-chain">
               <label class="fraction-input">
                 <span class="sr-only">코사인 A 분자</span>
                 <input inputmode="text" autocomplete="off" data-part="numerator" aria-label="코사인 A 분자">
@@ -301,10 +327,26 @@
                 </label>
                 <span class="result-mark refinement-result-mark" aria-live="polite"></span>
               </div>
+              <div class="refinement-answer second-refinement-answer" hidden>
+                <span class="equals">=</span>
+                <label class="fraction-input">
+                  <span class="sr-only">두 번째로 정리한 코사인 분자</span>
+                  <input inputmode="text" autocomplete="off" data-refined-part="numerator" aria-label="두 번째로 정리한 코사인 분자">
+                  <span class="fraction-line"></span>
+                  <span class="sr-only">두 번째로 정리한 코사인 분모</span>
+                  <input inputmode="text" autocomplete="off" data-refined-part="denominator" aria-label="두 번째로 정리한 코사인 분모">
+                </label>
+                <span class="result-mark refinement-result-mark" aria-live="polite"></span>
+              </div>
+              <button class="ratio-root-button" data-ratio-root="cos" type="button" aria-label="코사인 답안 칸에 루트 기호 넣기" title="코사인 답안에 루트 입력" hidden>
+                <span aria-hidden="true">√</span><span class="ratio-root-label">루트</span>
+              </button>
+              </div>
             </div>
             <div class="formula-row" data-ratio="tan">
               <div class="formula-name"><span>tan</span> A</div>
               <span class="equals">=</span>
+              <div class="answer-chain">
               <label class="fraction-input">
                 <span class="sr-only">탄젠트 A 분자</span>
                 <input inputmode="text" autocomplete="off" data-part="numerator" aria-label="탄젠트 A 분자">
@@ -323,6 +365,21 @@
                   <input inputmode="text" autocomplete="off" data-refined-part="denominator" aria-label="약분 또는 유리화한 탄젠트 분모">
                 </label>
                 <span class="result-mark refinement-result-mark" aria-live="polite"></span>
+              </div>
+              <div class="refinement-answer second-refinement-answer" hidden>
+                <span class="equals">=</span>
+                <label class="fraction-input">
+                  <span class="sr-only">두 번째로 정리한 탄젠트 분자</span>
+                  <input inputmode="text" autocomplete="off" data-refined-part="numerator" aria-label="두 번째로 정리한 탄젠트 분자">
+                  <span class="fraction-line"></span>
+                  <span class="sr-only">두 번째로 정리한 탄젠트 분모</span>
+                  <input inputmode="text" autocomplete="off" data-refined-part="denominator" aria-label="두 번째로 정리한 탄젠트 분모">
+                </label>
+                <span class="result-mark refinement-result-mark" aria-live="polite"></span>
+              </div>
+              <button class="ratio-root-button" data-ratio-root="tan" type="button" aria-label="탄젠트 답안 칸에 루트 기호 넣기" title="탄젠트 답안에 루트 입력" hidden>
+                <span aria-hidden="true">√</span><span class="ratio-root-label">루트</span>
+              </button>
               </div>
             </div>
           </div>
@@ -416,6 +473,6 @@
   </main>
 
   <footer>삼각형을 천천히 바라보는 것부터, 수학은 시작됩니다.</footer>
-  <script src="app.js?v=25"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 const SVG_NS = "http://www.w3.org/2000/svg";
 const XHTML_NS = "http://www.w3.org/1999/xhtml";
 const STAGE_ONE_GOAL = 5;
+const STAGE_UNLOCK_PASSWORD = "2357";
 const AUTO_ADVANCE_DELAY = 1600;
 
 const stageInfo = {
@@ -103,6 +104,7 @@ const state = {
   stageOneCorrect: 0,
   stageScores: { "1": 0, "2": 0, "3": 0 },
   stageTwoUnlocked: false,
+  unlockedWithPassword: false,
   pendingStageChoice: false,
   activeMathInput: null,
   questionNumber: 0,
@@ -147,8 +149,14 @@ const els = {
   angleSelectorDescription: document.querySelector("#angleSelectorDescription"),
   angleButtons: [...document.querySelectorAll(".angle-option")],
   stageGoal: document.querySelector("#stageGoal"),
+  stageUnlock: document.querySelector("#stageUnlock"),
+  stageUnlockToggle: document.querySelector("#stageUnlockToggle"),
+  stageUnlockForm: document.querySelector("#stageUnlockForm"),
+  stageUnlockPassword: document.querySelector("#stageUnlockPassword"),
+  stageUnlockStatus: document.querySelector("#stageUnlockStatus"),
   trigAnswers: document.querySelector("#trigAnswers"),
   trigAnswerTitle: document.querySelector("#trigAnswerTitle"),
+  ratioRootButtons: [...document.querySelectorAll("[data-ratio-root]")],
   specialLengthAnswers: document.querySelector("#specialLengthAnswers"),
   specialLengthRows: [...document.querySelectorAll(".special-length-row")],
   boundaryAngleAnswer: document.querySelector("#boundaryAngleAnswer"),
@@ -212,6 +220,10 @@ function syncRatioMode() {
   document.querySelectorAll(".formula-row").forEach(row => {
     row.hidden = state.ratioMode !== "all" && row.dataset.ratio !== state.ratioMode;
   });
+  els.ratioRootButtons.forEach(button => {
+    const isSpecialRatioPractice = state.stage === "3" && ["3-1", "3-2"].includes(state.specialMode);
+    button.hidden = !["1", "2"].includes(state.stage) && !isSpecialRatioPractice;
+  });
   els.trigAnswerTitle.textContent = ratioInfo[state.ratioMode].title;
 }
 
@@ -228,8 +240,12 @@ function updateTrigLabels(angle = null) {
     row.querySelector(".formula-name").innerHTML = `<span>${ratio}</span> ${angleLabel}`;
     row.querySelector('[data-part="numerator"]').setAttribute("aria-label", `${koreanNames[ratio]} ${spokenAngle} 분자`);
     row.querySelector('[data-part="denominator"]').setAttribute("aria-label", `${koreanNames[ratio]} ${spokenAngle} 분모`);
-    row.querySelector('[data-refined-part="numerator"]').setAttribute("aria-label", `약분 또는 유리화한 ${koreanNames[ratio]} ${spokenAngle} 분자`);
-    row.querySelector('[data-refined-part="denominator"]').setAttribute("aria-label", `약분 또는 유리화한 ${koreanNames[ratio]} ${spokenAngle} 분모`);
+    row.querySelectorAll('[data-refined-part="numerator"]').forEach((input, index) => {
+      input.setAttribute("aria-label", `${index ? "두 번째로 " : ""}약분 또는 유리화한 ${koreanNames[ratio]} ${spokenAngle} 분자`);
+    });
+    row.querySelectorAll('[data-refined-part="denominator"]').forEach((input, index) => {
+      input.setAttribute("aria-label", `${index ? "두 번째로 " : ""}약분 또는 유리화한 ${koreanNames[ratio]} ${spokenAngle} 분모`);
+    });
   });
 }
 
@@ -284,7 +300,7 @@ function syncSpecialMode() {
   els.boundaryAngleAnswer.hidden = !isBoundaryPractice;
   els.boundaryHintVisual.hidden = !isBoundaryPractice;
   els.hintPanel.classList.toggle("boundary-hint", isBoundaryPractice);
-  els.mathSymbolToolbar.hidden = state.stage === "2" || isBoundaryPractice;
+  els.mathSymbolToolbar.hidden = ["1", "2"].includes(state.stage) || isDirectValues || (isStageThree && state.specialMode === "3-1") || isBoundaryPractice;
   els.practiceGrid.classList.toggle("no-diagram", isDirectValues || isBoundaryPractice);
   syncAngleMode();
   updateSpecialStageCopy();
@@ -317,12 +333,24 @@ function insertCalculatorRoot() {
   insertMathSymbol("√", target);
 }
 
+function insertRatioRoot(button) {
+  const row = button.closest(".formula-row");
+  const inputs = [...row.querySelectorAll("input")].filter(input => !input.disabled && !input.closest("[hidden]"));
+  const target = inputs.includes(state.activeMathInput)
+    ? state.activeMathInput
+    : inputs.find(input => !input.value.trim()) || inputs[0];
+  if (target) insertMathSymbol("√", target);
+}
+
 function updateStageGoal() {
   const completed = Math.min(state.stageOneCorrect, STAGE_ONE_GOAL);
   els.stageGoal.innerHTML = state.stageTwoUnlocked
-    ? `1단계 완료 <strong>${STAGE_ONE_GOAL} / ${STAGE_ONE_GOAL}</strong>`
+    ? state.unlockedWithPassword
+      ? `비밀번호로 <strong>단계 열림</strong>`
+      : `1단계 완료 <strong>${STAGE_ONE_GOAL} / ${STAGE_ONE_GOAL}</strong>`
     : `1단계 정답 <strong>${completed} / ${STAGE_ONE_GOAL}</strong>`;
   els.stageGoal.classList.toggle("complete", state.stageTwoUnlocked);
+  els.stageUnlock.hidden = state.stageTwoUnlocked;
   els.stageTwoTab.disabled = !state.stageTwoUnlocked;
   els.stageTwoTab.setAttribute("aria-disabled", String(!state.stageTwoUnlocked));
   els.stageTwoDescription.textContent = state.stageTwoUnlocked
@@ -333,6 +361,33 @@ function updateStageGoal() {
   els.stageThreeDescription.textContent = state.stageTwoUnlocked
     ? "0°부터 90°까지 값 익히기"
     : `1단계 정답 ${STAGE_ONE_GOAL}개 후 열려요`;
+}
+
+function toggleStageUnlockForm() {
+  const willOpen = els.stageUnlockForm.hidden;
+  els.stageUnlockForm.hidden = !willOpen;
+  els.stageUnlockToggle.setAttribute("aria-expanded", String(willOpen));
+  els.stageUnlockToggle.textContent = willOpen ? "비밀번호 입력 닫기" : "비밀번호로 단계 열기";
+  els.stageUnlockStatus.textContent = "";
+  els.stageUnlockPassword.removeAttribute("aria-invalid");
+  if (willOpen) els.stageUnlockPassword.focus();
+}
+
+function unlockStagesWithPassword(event) {
+  event.preventDefault();
+  if (els.stageUnlockPassword.value !== STAGE_UNLOCK_PASSWORD) {
+    els.stageUnlockPassword.setAttribute("aria-invalid", "true");
+    els.stageUnlockStatus.textContent = "비밀번호가 맞지 않아요.";
+    els.stageUnlockPassword.select();
+    return;
+  }
+
+  state.stageTwoUnlocked = true;
+  state.unlockedWithPassword = true;
+  state.pendingStageChoice = false;
+  els.stageUnlockPassword.value = "";
+  updateStageGoal();
+  changeStage("2", true);
 }
 
 function showStageChoice() {
@@ -913,10 +968,11 @@ function checkAnswer() {
     activeRatioRows().forEach(row => {
       const numeratorInput = row.querySelector('[data-part="numerator"]');
       const denominatorInput = row.querySelector('[data-part="denominator"]');
-      const refinement = row.querySelector(".refinement-answer");
+      const refinements = [...row.querySelectorAll(".refinement-answer")];
+      const visibleRefinements = refinements.filter(refinement => !refinement.hidden);
       const initialMark = row.querySelector(".initial-result-mark");
 
-      if (refinement.hidden) {
+      if (!visibleRefinements.length) {
         const numeratorRaw = numeratorInput.value;
         const denominatorRaw = denominatorInput.value;
         if (!numeratorRaw.trim() || !denominatorRaw.trim()) hasEmpty = true;
@@ -935,14 +991,15 @@ function checkAnswer() {
 
         const issue = fractionRefinementIssue(numeratorRaw, denominatorRaw);
         if (issue) {
-          refinement.hidden = false;
+          const firstRefinement = refinements[0];
+          firstRefinement.hidden = false;
           row.classList.remove("correct", "incorrect");
           row.classList.add("partial", "needs-refinement");
           numeratorInput.disabled = true;
           denominatorInput.disabled = true;
           initialMark.textContent = "✓";
           refinementIssues.add(issue);
-          firstRefinementInput ||= refinement.querySelector('[data-refined-part="numerator"]');
+          firstRefinementInput ||= firstRefinement.querySelector('[data-refined-part="numerator"]');
           allCorrect = false;
           return;
         }
@@ -953,6 +1010,9 @@ function checkAnswer() {
         return;
       }
 
+      const refinement = visibleRefinements.at(-1);
+      const refinementIndex = refinements.indexOf(refinement);
+      const nextRefinement = refinements[refinementIndex + 1];
       const refinedNumeratorInput = refinement.querySelector('[data-refined-part="numerator"]');
       const refinedDenominatorInput = refinement.querySelector('[data-refined-part="denominator"]');
       const numeratorRaw = refinedNumeratorInput.value;
@@ -964,16 +1024,25 @@ function checkAnswer() {
       const issue = equivalent ? fractionRefinementIssue(numeratorRaw, denominatorRaw) : null;
       const refinedCorrect = equivalent && !issue;
 
-      refinement.classList.toggle("correct", refinedCorrect);
-      refinement.classList.toggle("incorrect", !refinedCorrect && !issue);
-      refinement.querySelector(".refinement-result-mark").textContent = refinedCorrect ? "✓" : equivalent ? "!" : "×";
+      refinement.classList.toggle("correct", refinedCorrect || Boolean(issue && nextRefinement));
+      refinement.classList.toggle("partial", Boolean(issue && !nextRefinement));
+      refinement.classList.toggle("incorrect", !equivalent && Boolean(numeratorRaw.trim() && denominatorRaw.trim()));
+      refinement.querySelector(".refinement-result-mark").textContent = refinedCorrect || (issue && nextRefinement) ? "✓" : equivalent ? "!" : "×";
+
       row.classList.toggle("correct", refinedCorrect);
       row.classList.toggle("partial", !refinedCorrect);
       row.classList.remove("incorrect");
       allCorrect = allCorrect && refinedCorrect;
       if (issue) {
         refinementIssues.add(issue);
-        firstRefinementInput ||= refinedNumeratorInput;
+        if (nextRefinement) {
+          nextRefinement.hidden = false;
+          refinedNumeratorInput.disabled = true;
+          refinedDenominatorInput.disabled = true;
+          firstRefinementInput ||= nextRefinement.querySelector('[data-refined-part="numerator"]');
+        } else {
+          firstRefinementInput ||= refinedNumeratorInput;
+        }
       } else if (numeratorRaw.trim() && denominatorRaw.trim() && !equivalent) {
         hasWrong = true;
       }
@@ -998,7 +1067,7 @@ function checkAnswer() {
       : refinementIssues.has("rationalize")
         ? "맞았습니다. 분모를 유리화하세요."
         : "맞았습니다. 약분하세요.";
-    setFeedback("", title, "오른쪽에 새로 생긴 분수 칸에 정리한 값을 입력하세요.");
+    setFeedback("", title, "새로 생긴 다음 분수 칸에 정리한 값을 입력하세요.");
     firstRefinementInput?.focus();
     return;
   }
@@ -1087,9 +1156,10 @@ function clearInputs() {
     row.classList.remove("correct", "incorrect", "partial", "needs-refinement");
     row.querySelectorAll("input").forEach(input => { input.value = ""; input.disabled = false; });
     row.querySelectorAll(".result-mark").forEach(mark => { mark.textContent = ""; });
-    const refinement = row.querySelector(".refinement-answer");
-    refinement.hidden = true;
-    refinement.classList.remove("correct", "incorrect");
+    row.querySelectorAll(".refinement-answer").forEach(refinement => {
+      refinement.hidden = true;
+      refinement.classList.remove("correct", "incorrect", "partial");
+    });
   });
   els.lengthInput.value = "";
   els.lengthInput.disabled = false;
@@ -1176,7 +1246,7 @@ function changeSpecialMode(mode) {
 
 function changeStage(stage, force = false) {
   if (["2", "3"].includes(stage) && !state.stageTwoUnlocked) return;
-  if (state.pendingStageChoice && !force) return;
+  if (state.pendingStageChoice && !force && stage === state.stage) return;
   state.pendingStageChoice = false;
   state.activeMathInput = null;
   els.stageComplete.hidden = true;
@@ -1229,6 +1299,12 @@ function updateProgress() {
 initializeMathInputPreviews();
 
 els.tabs.forEach(tab => tab.addEventListener("click", () => changeStage(tab.dataset.stage)));
+els.stageUnlockToggle.addEventListener("click", toggleStageUnlockForm);
+els.stageUnlockForm.addEventListener("submit", unlockStagesWithPassword);
+els.stageUnlockPassword.addEventListener("input", () => {
+  els.stageUnlockPassword.removeAttribute("aria-invalid");
+  els.stageUnlockStatus.textContent = "";
+});
 els.ratioButtons.forEach(button => button.addEventListener("click", () => changeRatioMode(button.dataset.ratioOption)));
 els.specialModeButtons.forEach(button => button.addEventListener("click", () => changeSpecialMode(button.dataset.specialMode)));
 els.angleButtons.forEach(button => button.addEventListener("click", () => changeAngleMode(button.dataset.angleOption)));
@@ -1268,6 +1344,7 @@ els.lengthInput.addEventListener("input", () => {
 els.calculateButton.addEventListener("click", toggleCalculationSteps);
 els.insertRootButton.addEventListener("click", () => insertMathSymbol("√"));
 els.calculatorRootButton.addEventListener("click", insertCalculatorRoot);
+els.ratioRootButtons.forEach(button => button.addEventListener("click", () => insertRatioRoot(button)));
 document.querySelectorAll("[data-root-target]").forEach(button => {
   button.addEventListener("click", () => {
     insertMathSymbol("√", document.getElementById(button.dataset.rootTarget));
@@ -1279,7 +1356,8 @@ document.querySelectorAll(".answer-panel input").forEach(input => input.addEvent
 document.querySelectorAll("input").forEach(input => input.addEventListener("keydown", event => {
   if (event.key !== "Enter") return;
   event.preventDefault();
-  if (input.closest(".math-calculator")) toggleCalculationSteps();
+  if (input.closest(".stage-unlock-form")) els.stageUnlockForm.requestSubmit();
+  else if (input.closest(".math-calculator")) toggleCalculationSteps();
   else checkAnswer();
 }));
 
